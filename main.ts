@@ -1,9 +1,21 @@
 namespace SpriteKind {
     export const background = SpriteKind.create()
 }
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
+    if (is_recover == 0) {
+        info.changeLifeBy(1)
+        is_recover = 1
+    }
+})
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (mySprite.y == 93 && is_dead == 0) {
         mySprite.vy = -160
+    }
+})
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
+    if (is_damage == 0) {
+        info.changeLifeBy(-1)
+        is_damage = 1
     }
 })
 function init_background () {
@@ -170,7 +182,7 @@ f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f 
 f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f 
 f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f 
 f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f 
-`, SpriteKind.Player)
+`, SpriteKind.background)
     bg_road = sprites.create(img`
 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
@@ -207,15 +219,22 @@ f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f 
 `, SpriteKind.background)
     bg_road.setPosition(80, 117)
 }
+info.onLifeZero(function () {
+    game.over(false)
+})
+let recover: Sprite = null
 let small_fly_ojama: Sprite = null
 let large_ojama: Sprite = null
 let small_ojama: Sprite = null
-let ojama = 0
+let things = 0
 let bg_road: Sprite = null
 let bg_sky: Sprite = null
+let is_recover = 0
 let is_dead = 0
 let mySprite: Sprite = null
+let is_damage = 0
 init_background()
+is_damage = 0
 mySprite = sprites.create(img`
 . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . 
@@ -235,9 +254,15 @@ c b d d d d d 5 5 5 5 5 5 5 b .
 . . . c c c c c c c c b b . . . 
 `, SpriteKind.Player)
 is_dead = 0
+info.setScore(0)
+info.setLife(3)
 mySprite.setPosition(30, 93)
 controller.moveSprite(mySprite, 50, 0)
 mySprite.setFlag(SpriteFlag.StayInScreen, true)
+game.onUpdateInterval(2000, function () {
+    is_damage = 0
+    is_recover = 0
+})
 game.onUpdate(function () {
     if (mySprite.y < 93) {
         mySprite.ay = 450
@@ -246,9 +271,9 @@ game.onUpdate(function () {
         mySprite.y = 93
     }
 })
-game.onUpdateInterval(750, function () {
-    ojama = Math.randomRange(0, 4)
-    if (ojama == 0) {
+game.onUpdateInterval(Math.randomRange(800, 1500), function () {
+    things = Math.randomRange(0, 99)
+    if (things >= 0 && things <= 24) {
         small_ojama = sprites.createProjectileFromSide(img`
 . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . 
@@ -266,10 +291,12 @@ game.onUpdateInterval(750, function () {
 . . . . . a a b b c . . . . . . 
 . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . 
-`, -100, 0)
+`, Math.randomRange(-175, -50), 0)
+        small_ojama.setKind(SpriteKind.Enemy)
+        small_ojama.x = 165
         small_ojama.y = 93
         small_ojama.z = 2
-    } else if (ojama == 1) {
+    } else if (things >= 25 && things <= 39) {
         large_ojama = sprites.createProjectileFromSide(img`
 . . . . . . . . . c c 8 . . . . 
 . . . . . . 8 c c c f 8 c c . . 
@@ -287,10 +314,12 @@ c a 8 a a c c c c a a f f f 8 a
 . . . c c b b b 6 6 a c c c c . 
 . . . . c c a b b c c c . . . . 
 . . . . . c c c c c c . . . . . 
-`, -100, 0)
+`, Math.randomRange(-175, -50), 0)
+        large_ojama.setKind(SpriteKind.Enemy)
+        large_ojama.x = 165
         large_ojama.y = 93
         large_ojama.z = 2
-    } else if (ojama == 2) {
+    } else if (things >= 40 && things <= 64) {
         small_fly_ojama = sprites.createProjectileFromSide(img`
 . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . 
@@ -308,7 +337,7 @@ c a 8 a a c c c c a a f f f 8 a
 . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . 
-`, -100, 0)
+`, Math.randomRange(-100, -50), 0)
         animation.runImageAnimation(
         small_fly_ojama,
         [img`
@@ -451,7 +480,37 @@ f b c b b b c b b b b f . . . .
         170,
         true
         )
+        small_fly_ojama.setKind(SpriteKind.Enemy)
+        small_fly_ojama.x = 165
         small_fly_ojama.y = 78
-        small_fly_ojama.z = 0
+        small_fly_ojama.z = 2
+    } else if (things >= 65 && things <= 70) {
+        recover = sprites.createProjectileFromSide(img`
+. . . . . 3 3 b 3 3 d d 3 3 . . 
+. . . . 3 1 1 d 3 d 1 1 1 1 3 . 
+. . . 3 d 1 1 1 d 1 1 1 d 3 1 3 
+. . 3 d d 1 1 1 d d 1 1 1 3 3 3 
+. 3 1 1 d 1 1 1 1 d d 1 1 b . . 
+. 3 1 1 1 d 1 1 1 1 1 d 1 1 3 . 
+. b d 1 1 1 d 1 1 1 1 1 1 1 3 . 
+. 4 b 1 1 1 1 d d 1 1 1 1 d 3 . 
+. 4 4 d 1 1 1 1 1 1 d d d b b . 
+. 4 d b d 1 1 1 1 1 1 1 1 3 . . 
+4 d d 5 b d 1 1 1 1 1 1 1 3 . . 
+4 5 d 5 5 b b d 1 1 1 1 d 3 . . 
+4 5 5 d 5 5 d b b b d d 3 . . . 
+4 5 5 5 d d d d 4 4 b 3 . . . . 
+. 4 5 5 5 4 4 4 . . . . . . . . 
+. . 4 4 4 . . . . . . . . . . . 
+`, -100, 0)
+        recover.setKind(SpriteKind.Food)
+        recover.x = 165
+        recover.y = 85
+        recover.z = 2
+    } else {
+    	
     }
+})
+game.onUpdateInterval(50, function () {
+    info.changeScoreBy(1)
 })
